@@ -8,7 +8,7 @@ const Card: React.FC<CardProps> = ({
   ctaElement = null,
 }) => {
   return (
-    <div className='max-w-md mx-auto rounded-lg'>
+    <div className='max-w-md mx-auto rounded-lg p-14'>
       {title && (
         <h1 className='text-2xl font-bold text-center mb-2'>{title}</h1>
       )}
