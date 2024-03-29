@@ -3,6 +3,7 @@ import { Roboto } from "next/font/google";
 import "./globals.css";
 import Header from "./components/Header";
 import Container from "./components/Container";
+import { FastingProvider } from "@/context";
 
 const roboto = Roboto({ weight: ["400", "700"], subsets: ["latin"] });
 
@@ -19,8 +20,10 @@ export default function RootLayout({
   return (
     <html lang='en'>
       <body className={roboto.className}>
-        <Header />
-        <Container>{children}</Container>
+        <FastingProvider>
+          <Header />
+          <Container>{children}</Container>
+        </FastingProvider>
       </body>
     </html>
   );
