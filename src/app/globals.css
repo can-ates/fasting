@@ -20,6 +20,21 @@ body {
   background: rgb(235, 236, 255);
 }
 
+input[type="time"] {
+  position: relative;
+  outline-width: 0;
+}
+
+input[type="time"]::-webkit-calendar-picker-indicator {
+  display: block;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: 100%;
+  position: absolute;
+  background: transparent;
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;
