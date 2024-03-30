@@ -3,31 +3,15 @@ import React, { useState, useEffect } from "react";
 import "tailwindcss/tailwind.css";
 import Timer from "./Timer";
 import CircularProgressBar from "./CircularProgress";
-
-const getLocalTime = (date: Date) => {
-  const tz = date.getTimezoneOffset() * 60 * 1000;
-  const tzLocal = date - tz;
-  return new Date(tzLocal);
-};
-
-const formatTime = (date: Date, local = true) => {
-  const localTime = local ? getLocalTime(date) : date;
-
-  return localTime.toISOString().substring(11, 19);
-};
-
-const calculateEndTime = (startTime: Date, fastingDuration: number) => {
-  return new Date(getLocalTime(startTime).getTime() + fastingDuration * 1000);
-};
-
-function convertToSeconds(time: string) {
-  const parts = time.split(":");
-  const hours = parseInt(parts[0], 10);
-  const minutes = parseInt(parts[1], 10);
-  const seconds = parseInt(parts[2], 10);
-
-  return hours * 3600 + minutes * 60 + seconds;
-}
+import { useFastingContext } from "@/context";
+import { saveFasting } from "@/actions";
+import {
+  calculateEndTime,
+  convertToSeconds,
+  formatDuration,
+  formatTime,
+  getLocalTime,
+} from "@/utils";
 
 const FastingTracker: React.FC = () => {
   const initialFastingDuration = 8 * 60 * 60; // 8 hours in seconds
@@ -42,6 +26,9 @@ const FastingTracker: React.FC = () => {
     formatTime(new Date(fastingDuration * 1000), false)
   );
   const [isActive, setIsActive] = useState(false);
+  const [progress, setProgress] = useState<number>(100);
+
+  const { dispatchFastingAction } = useFastingContext();
 
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
@@ -60,50 +47,6 @@ const FastingTracker: React.FC = () => {
       if (interval) clearInterval(interval);
     };
   }, [isActive, fastingDuration]);
-
-  const resetFasting = () => {
-    setStartTime(new Date());
-    setProgress(100);
-    setFastingDuration(initialFastingDuration);
-    setIsActive(false);
-    setFastingTime(formatTime(new Date(initialFastingDuration * 1000), false));
-  };
-
-  const handleStart = () => {
-    if (!isActive) {
-      setIsActive(true);
-    } else {
-      resetFasting();
-    }
-  };
-
-  useEffect(() => {
-    if (!isActive) {
-      setEndTime(calculateEndTime(startTime, fastingDuration));
-    } else {
-      setFastingTime(formatTime(new Date(fastingDuration * 1000), false));
-    }
-  }, [startTime, fastingDuration, isActive]);
-
-  const handleStartTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newStartTime = new Date();
-    newStartTime.setHours(parseInt(e.target.value.substr(0, 2)));
-    newStartTime.setMinutes(parseInt(e.target.value.substr(3, 2)));
-    newStartTime.setSeconds(0);
-    setStartTime(newStartTime);
-  };
-
-  const handleDurationChange = (time: string) => {
-    const newDuration = convertToSeconds(time);
-    setFastingDuration(newDuration);
-    console.log(newDuration, time);
-    const fastTime = formatTime(new Date(newDuration * 1000), false);
-    console.log(fastTime, new Date(newDuration * 1000));
-    setFastingTime(fastTime);
-  };
-
-  // The progress of the timer
-  const [progress, setProgress] = useState<number>(100);
 
   // Update progress over time
   useEffect(() => {
@@ -126,6 +69,65 @@ const FastingTracker: React.FC = () => {
       }
     }
   }, [startTime, fastingDuration, isActive, endTime]);
+
+  useEffect(() => {
+    if (!isActive) {
+      setEndTime(calculateEndTime(startTime, fastingDuration));
+    } else {
+      setFastingTime(formatTime(new Date(fastingDuration * 1000), false));
+    }
+  }, [startTime, fastingDuration, isActive]);
+
+  const resetFasting = () => {
+    setStartTime(new Date());
+    setProgress(100);
+    setFastingDuration(initialFastingDuration);
+    setIsActive(false);
+    setFastingTime(formatTime(new Date(initialFastingDuration * 1000), false));
+  };
+
+  const handleFastingState = () => {
+    if (!isActive) {
+      setIsActive(true);
+    } else {
+      const startTimeInSeconds = convertToSeconds(formatTime(startTime));
+      const currentTimeInSeconds = convertToSeconds(
+        formatTime(new Date(Date.now()))
+      );
+
+      let durationInSeconds = currentTimeInSeconds - startTimeInSeconds;
+
+      // If the duration is negative, we assume that the current time is for the next day
+      if (durationInSeconds < 0) {
+        durationInSeconds += 24 * 3600;
+      }
+
+      saveFasting(dispatchFastingAction, {
+        duration: formatDuration(durationInSeconds),
+        startTime: formatTime(startTime),
+        endTime: formatTime(endTime, false),
+        createdAt: new Date(Date.now()).toLocaleString(),
+      });
+      resetFasting();
+    }
+  };
+
+  const handleStartTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newStartTime = new Date();
+    newStartTime.setHours(parseInt(e.target.value.substr(0, 2)));
+    newStartTime.setMinutes(parseInt(e.target.value.substr(3, 2)));
+    newStartTime.setSeconds(0);
+    setStartTime(newStartTime);
+  };
+
+  const handleDurationChange = (time: string) => {
+    const newDuration = convertToSeconds(time);
+    setFastingDuration(newDuration);
+    console.log(newDuration, time);
+    const fastTime = formatTime(new Date(newDuration * 1000), false);
+    console.log(fastTime, new Date(newDuration * 1000));
+    setFastingTime(fastTime);
+  };
 
   const onCountDownChange = ({ prettyFormat }) => {
     console.log(prettyFormat);
@@ -187,7 +189,7 @@ const FastingTracker: React.FC = () => {
       <button
         type='button'
         className='px-4 py-2 mt-4 text-white bg-blue-600 rounded'
-        onClick={handleStart}
+        onClick={handleFastingState}
       >
         {isActive ? "End Fasting" : "Start Fasting"}
       </button>
