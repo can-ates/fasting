@@ -7,6 +7,7 @@ import { useFastingContext } from "@/context";
 
 import History from "../components/History";
 import { hasDaysPassed } from "@/utils";
+import InfoCards from "../components/InfoCards";
 
 export default function Home() {
   const { FastingState } = useFastingContext();
@@ -23,39 +24,6 @@ export default function Home() {
     [fastingHistories]
   );
 
-  const totalHours = useMemo(
-    () =>
-      fastingHistories.reduce((acc, curr) => {
-        return acc + curr.duration;
-      }, 0),
-    [fastingHistories]
-  );
-
-  const fastingInfo = [
-    {
-      id: "sand glass",
-      text: "Total Hours",
-      icon: "⌛️",
-      value: Math.floor(totalHours / 3600),
-    },
-    {
-      id: "confetti",
-      text: "Total Completed Fasting",
-      icon: "🎉",
-      value: fastingHistories.length,
-    },
-  ].map(({ id, text, icon, value }) => (
-    <Card key={id}>
-      <div className='flex flex-col items-center justify-center w-full py-6 px-4'>
-        <span className='text-2xl mb-2' role='img' aria-label={id}>
-          {icon}
-        </span>
-        <span className='font-bold text-2xl'>{value}</span>
-        <span className='text-[#696C74]'>{text}</span>
-      </div>
-    </Card>
-  ));
-
   return (
     <div className='flex flex-col items-center justify-between space-y-12 py-10'>
       <h1>
@@ -67,7 +35,7 @@ export default function Home() {
         </Card>
       </article>
       <article className='flex w-full justify-between space-x-6'>
-        {fastingInfo}
+        <InfoCards histories={fastingHistories} />
       </article>
       <article className='w-full'>
         <div className='flex justify-between items-center mb-4'>

@@ -1,6 +1,6 @@
+import React from "react";
 import { TimerProps } from "@/types";
 import { secondsToFormattedTime } from "@/utils";
-import React from "react";
 
 const Timer: React.FC<TimerProps> = ({ onCountDownChange, time, isActive }) => {
   const convertToSeconds = (time: string) => {

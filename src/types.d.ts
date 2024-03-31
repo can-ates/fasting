@@ -21,6 +21,20 @@ export type HistoryProps = {
   histories: FastingHistory[];
 };
 
+export type CircularProgressBarProps = {
+  size: number;
+  strokeWidth: number;
+  progress: number;
+};
+
+export type DropDownMenuProps = {
+  children: React.ReactNode;
+};
+
+export type InfoCardsProps = {
+  histories: FastingHistory[];
+};
+
 type TextInputProps = {
   id: string;
   name: string;

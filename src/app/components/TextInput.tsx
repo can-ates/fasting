@@ -1,5 +1,5 @@
-import { TextInputProps } from "@/types";
 import React from "react";
+import { TextInputProps } from "@/types";
 
 const TextInput: React.FC<TextInputProps> = ({
   id,

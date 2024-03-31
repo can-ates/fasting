@@ -15,7 +15,7 @@ const Header: React.FC = () => {
     logout();
     dispatchFastingAction({
       type: FastingActionTypes.SET_STATE,
-      payload: { user: {} },
+      payload: { user: {}, fastingHistories: [] },
     });
   };
 

@@ -1,4 +1,3 @@
-"use client";
 import { CardProps } from "@/types";
 
 const Card: React.FC<CardProps> = ({ title, subtitle, children }) => {

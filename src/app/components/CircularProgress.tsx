@@ -1,11 +1,6 @@
 "use client";
+import { CircularProgressBarProps } from "@/types";
 import React, { useMemo } from "react";
-
-interface CircularProgressBarProps {
-  size: number;
-  strokeWidth: number;
-  progress: number;
-}
 
 const CircularProgressBar: React.FC<CircularProgressBarProps> = ({
   size,
