@@ -17,6 +17,10 @@ export type TimerProps = {
   isActive: boolean;
 };
 
+export type HistoryProps = {
+  histories: FastingHistory[];
+};
+
 type TextInputProps = {
   id: string;
   name: string;

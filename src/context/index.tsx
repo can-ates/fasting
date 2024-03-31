@@ -26,6 +26,18 @@ const reducer = (
         ...state,
         ...payload,
       };
+    case FastingActionTypes.DELETE_FASTING_DATA:
+      const filteredSessions = state.fastingHistories.filter(
+        ({ createdAt }) => {
+          if (payload !== createdAt) return true;
+
+          return false;
+        }
+      );
+      return {
+        ...state,
+        fastingHistories: filteredSessions,
+      };
     default:
       return state;
   }

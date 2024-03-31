@@ -1,4 +1,4 @@
-export const getLocalTime = (date: Date): Date => {
+export const getLocalTime = (date: any): Date => {
   const tzOffsetMS = date.getTimezoneOffset() * 60 * 1000;
   const tzLocalMs = date - tzOffsetMS;
   return new Date(tzLocalMs);
@@ -76,4 +76,14 @@ export const prettyFormatDate = (isoDateString: string): string => {
   } else {
     return parsedDate.toLocaleDateString();
   }
+};
+
+export const hasDaysPassed = (isoDateString: string, day: number): boolean => {
+  const date = new Date(isoDateString);
+  const now = new Date();
+
+  const daysInMilliseconds = day * 24 * 60 * 60 * 1000;
+  const timeDifference = now.getTime() - date.getTime();
+
+  return timeDifference >= daysInMilliseconds;
 };

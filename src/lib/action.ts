@@ -1,6 +1,6 @@
-import { createStorage } from "@/actions";
+import { createStorage, removeStorage } from "@/actions";
 import { signIn } from "@/api";
-import { setCookie } from "@/auth";
+import { removeCookie, setCookie } from "@/auth";
 import { FormDataTypes } from "@/types";
 
 export async function authenticate(formData: FormDataTypes) {
@@ -22,4 +22,9 @@ export async function authenticate(formData: FormDataTypes) {
   } catch (error) {
     console.log(error);
   }
+}
+
+export function logout() {
+  removeStorage();
+  removeCookie();
 }

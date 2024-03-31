@@ -4,15 +4,24 @@ import Link from "next/link";
 import Card from "../components/Card";
 import FastingTracker from "../components/FastingTracker";
 import { useFastingContext } from "@/context";
-import { formatDuration, prettyFormatDate, removeSeconds } from "@/utils";
 
-import ThreeDot from "../../assets/threedot.svg";
-import Image from "next/image";
+import History from "../components/History";
+import { hasDaysPassed } from "@/utils";
 
 export default function Home() {
   const { FastingState } = useFastingContext();
 
   const { fastingHistories, user } = FastingState;
+
+  const latestHistories = useMemo(
+    () =>
+      fastingHistories.filter(({ createdAt }) => {
+        if (hasDaysPassed(createdAt, 1)) return false;
+
+        return true;
+      }),
+    [fastingHistories]
+  );
 
   const totalHours = useMemo(
     () =>
@@ -61,50 +70,26 @@ export default function Home() {
         {fastingInfo}
       </article>
       <article className='w-full'>
-        <div className='flex justify-between items-center'>
-          <h5 className='font-bold'>My Latest Feedings</h5>
-          <Link href='/history' passHref>
-            <button
-              type='button'
+        <div className='flex justify-between items-center mb-4'>
+          <h4 className='font-bold text-2xl '>My Latest Fastings</h4>
+          <Link href='/history' legacyBehavior>
+            <a
               className='text-[#834CC9] bg-transparent hover:bg-purple-200 text-sm px-5 py-2.5 text-center'
               aria-label='View all fasting sessions'
             >
               View All
-            </button>
+            </a>
           </Link>
         </div>
-        <div>
-          <div className='space-y-6'>
-            {fastingHistories.map(
-              ({ duration, endTime, startTime, createdAt }) => (
-                <Card key={createdAt}>
-                  <div className='flex w-full justify-between p-6'>
-                    <div className='text-[#6567D9]'>
-                      <div className='flex items-center justify-between mb-2'>
-                        <span className='text-3xl font-bold capitalize'>
-                          {formatDuration(duration)}
-                        </span>
-                        <span className='ml-4 uppercase bg-[#D2CDFF] text-xs text-[#9F70DA] rounded-md p-2'>
-                          {prettyFormatDate(createdAt)}
-                        </span>
-                      </div>
-                      <span className='text-[#8F939A]'>
-                        {removeSeconds(startTime)} - {removeSeconds(endTime)}
-                      </span>
-                    </div>
-                    <button
-                      onClick={() => {}}
-                      className='relative flex flex-col justify-around items-center bg-transparent '
-                      aria-label='menu'
-                    >
-                      <Image src={ThreeDot} height={20} width={20} alt='menu' />
-                    </button>
-                  </div>
-                </Card>
-              )
-            )}
+        {latestHistories.length > 0 ? (
+          <div>
+            <History histories={latestHistories} />
           </div>
-        </div>
+        ) : (
+          <p className='text-center p-8'>
+            You do not have any fasting sessions in 24 hours.
+          </p>
+        )}
       </article>
     </div>
   );

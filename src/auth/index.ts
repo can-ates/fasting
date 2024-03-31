@@ -11,3 +11,8 @@ export async function setCookie(userID: string) {
   });
   redirect("/home");
 }
+
+export async function removeCookie() {
+  cookies().delete("fastingSession");
+  redirect("/signup");
+}

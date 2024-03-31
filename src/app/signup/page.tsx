@@ -51,6 +51,7 @@ const SignUp: React.FC = () => {
       [name as keyof FormData]: value,
     }));
   };
+
   const onRegister = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const user = await authenticate(formData);
@@ -63,7 +64,7 @@ const SignUp: React.FC = () => {
   return (
     <article className='mt-12'>
       <Card title='Create New Profile' subtitle='Start Your Fasting Journey'>
-        <form onSubmit={onRegister}>
+        <form onSubmit={onRegister} className='px-16 py-6'>
           <div className='flex flex-col items-center space-y-6 my-8'>
             {formElements.map(({ name, id, placeholder, type }) => (
               <TextInput
@@ -79,7 +80,7 @@ const SignUp: React.FC = () => {
             ))}
             <button
               type='submit'
-              className='bg-[#002548] text-white w-full p-4 rounded-[24px] hover:bg-blue-700 transition duration-300'
+              className='bg-[#002548] text-white w-full p-4 rounded-[32px] hover:bg-blue-700 transition duration-300'
             >
               Register
             </button>

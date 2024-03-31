@@ -12,4 +12,5 @@ export const initialFastingState: FastingState = {
 export const FastingActionTypes = {
   SET_FASTING_DATA: "SET_FASTING_DATA",
   SET_STATE: "SET_STATE",
+  DELETE_FASTING_DATA: "DELETE_FASTING_DATA",
 };

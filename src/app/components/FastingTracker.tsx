@@ -41,7 +41,6 @@ const FastingTracker: React.FC = () => {
         setTimeElapsed((prevSeconds) => prevSeconds + 1);
       }, 1000);
     }
-
     if (fastingDuration === 0 && status === "started") {
       setStatus("completed");
       setTimeElapsed(0);
@@ -51,6 +50,17 @@ const FastingTracker: React.FC = () => {
       if (interval) clearInterval(interval);
     };
   }, [status, fastingDuration]);
+
+  useEffect(() => {
+    if (status === "idle") {
+      setEndTime(calculateEndTime(startTime, fastingDuration));
+    } else if (status === "started") {
+      const elapsedTime = secondsToFormattedTime(timeElapsed);
+      setFastingTime(elapsedTime);
+    } else {
+      recordFasting();
+    }
+  }, [startTime, fastingDuration, status, timeElapsed]);
 
   // Update progress over time
   useEffect(() => {
@@ -73,17 +83,6 @@ const FastingTracker: React.FC = () => {
       }
     }
   }, [startTime, fastingDuration, status, endTime]);
-
-  useEffect(() => {
-    if (status === "idle") {
-      setEndTime(calculateEndTime(startTime, fastingDuration));
-    } else if (status === "started") {
-      const elapsedTime = secondsToFormattedTime(timeElapsed);
-      setFastingTime(elapsedTime);
-    } else {
-      recordFasting();
-    }
-  }, [startTime, fastingDuration, status, timeElapsed]);
 
   const [header, elapsed, start, end, ctaText] = useMemo(() => {
     if (status === "completed") {
@@ -118,6 +117,7 @@ const FastingTracker: React.FC = () => {
     setProgress(101);
     setFastingDuration(initialFastingDuration);
     setStatus("idle");
+    setTimeElapsed(0);
     setFastingTime(formatTime(new Date(initialFastingDuration * 1000), false));
   };
 
@@ -128,11 +128,6 @@ const FastingTracker: React.FC = () => {
     );
 
     let durationInSeconds = currentTimeInSeconds - startTimeInSeconds;
-
-    // If the duration is negative, we assume that the current time is for the next day
-    if (durationInSeconds < 0) {
-      durationInSeconds += 24 * 3600;
-    }
 
     saveFasting(dispatchFastingAction, {
       duration: durationInSeconds,

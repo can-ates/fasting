@@ -11,6 +11,10 @@ export const createStorage = (user: UserType) => {
   );
 };
 
+export const removeStorage = () => {
+  localStorage.removeItem("fastingSession");
+};
+
 export const getStorage = () => {
   const fastingStorage = localStorage.getItem("fastingSession");
 
@@ -47,4 +51,32 @@ export const saveFasting = (
     type: FastingActionTypes.SET_FASTING_DATA,
     payload: { fastingData },
   });
+};
+
+export const deleteFasting = (
+  dispatchFastingAction: React.Dispatch<FastingAction>,
+  createdDate: string
+) => {
+  dispatchFastingAction({
+    type: FastingActionTypes.DELETE_FASTING_DATA,
+    payload: createdDate,
+  });
+
+  const fastingSession = getStorage();
+
+  const fastingHistory: FastingHistory[] = fastingSession.fastingHistories;
+
+  const filteredSessions = fastingHistory.filter(({ createdAt }) => {
+    if (createdDate !== createdAt) return true;
+
+    return false;
+  });
+
+  localStorage.setItem(
+    "fastingSession",
+    JSON.stringify({
+      ...fastingSession,
+      fastingHistories: filteredSessions,
+    })
+  );
 };
