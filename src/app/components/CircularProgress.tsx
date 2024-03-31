@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useMemo } from "react";
 
 interface CircularProgressBarProps {
   size: number;
@@ -32,6 +32,16 @@ const CircularProgressBar: React.FC<CircularProgressBarProps> = ({
   const dotX = center + radius * Math.cos(progressDotAngle);
   const dotY = center + radius * Math.sin(progressDotAngle);
 
+  const [firstStopColor, secondStopColor] = useMemo(() => {
+    if (progress < 100) {
+      return ["#FF6B00", "#FFCB8D"];
+    } else if (progress === 100) {
+      return ["#52D13D", "#89C36D"];
+    } else {
+      return ["#9294eb", "#6f70dd"];
+    }
+  }, [progress]);
+
   return (
     <div className='relative flex items-center justify-center'>
       <svg width={size} height={size}>
@@ -45,11 +55,11 @@ const CircularProgressBar: React.FC<CircularProgressBarProps> = ({
           >
             <stop
               offset='0%'
-              style={{ stopColor: "#9294eb", stopOpacity: 1 }}
+              style={{ stopColor: firstStopColor, stopOpacity: 1 }}
             />
             <stop
               offset='100%'
-              style={{ stopColor: "#6f70dd", stopOpacity: 1 }}
+              style={{ stopColor: secondStopColor, stopOpacity: 1 }}
             />
           </linearGradient>
         </defs>

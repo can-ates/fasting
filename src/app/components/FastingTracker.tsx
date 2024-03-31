@@ -1,6 +1,7 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import "tailwindcss/tailwind.css";
+import React, { useState, useEffect, useMemo } from "react";
+import Confetti from "react-confetti";
+
 import Timer from "./Timer";
 import CircularProgressBar from "./CircularProgress";
 import { useFastingContext } from "@/context";
@@ -8,9 +9,9 @@ import { saveFasting } from "@/actions";
 import {
   calculateEndTime,
   convertToSeconds,
-  formatDuration,
   formatTime,
-  getLocalTime,
+  removeSeconds,
+  secondsToFormattedTime,
 } from "@/utils";
 
 const FastingTracker: React.FC = () => {
@@ -25,32 +26,35 @@ const FastingTracker: React.FC = () => {
   const [fastingTime, setFastingTime] = useState<string>(
     formatTime(new Date(fastingDuration * 1000), false)
   );
-  const [isActive, setIsActive] = useState(false);
-  const [progress, setProgress] = useState<number>(100);
+  const [timeElapsed, setTimeElapsed] = useState(0);
+  const [status, setStatus] = useState("idle");
+  const [progress, setProgress] = useState<number>(101);
 
   const { dispatchFastingAction } = useFastingContext();
 
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
 
-    if (isActive && fastingDuration > 0) {
+    if (status === "started" && fastingDuration > 0) {
       interval = setInterval(() => {
         setFastingDuration((time) => time - 1);
+        setTimeElapsed((prevSeconds) => prevSeconds + 1);
       }, 1000);
     }
 
-    if (fastingDuration === 0) {
-      setIsActive(false);
+    if (fastingDuration === 0 && status === "started") {
+      setStatus("completed");
+      setTimeElapsed(0);
     }
 
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isActive, fastingDuration]);
+  }, [status, fastingDuration]);
 
   // Update progress over time
   useEffect(() => {
-    if (isActive) {
+    if (status === "started") {
       const now = new Date();
       const startTimestamp = startTime.getTime();
       const endTimestamp = endTime.getTime();
@@ -68,131 +72,168 @@ const FastingTracker: React.FC = () => {
         setProgress(progress);
       }
     }
-  }, [startTime, fastingDuration, isActive, endTime]);
+  }, [startTime, fastingDuration, status, endTime]);
 
   useEffect(() => {
-    if (!isActive) {
+    if (status === "idle") {
       setEndTime(calculateEndTime(startTime, fastingDuration));
+    } else if (status === "started") {
+      const elapsedTime = secondsToFormattedTime(timeElapsed);
+      setFastingTime(elapsedTime);
     } else {
-      setFastingTime(formatTime(new Date(fastingDuration * 1000), false));
+      recordFasting();
     }
-  }, [startTime, fastingDuration, isActive]);
+  }, [startTime, fastingDuration, status, timeElapsed]);
+
+  const [header, elapsed, start, end, ctaText] = useMemo(() => {
+    if (status === "completed") {
+      return [
+        "Fasting is completed!",
+        "Total Time",
+        "Started",
+        "Ended",
+        "Start New Fasting Session",
+      ];
+    } else if (status === "started") {
+      return [
+        "You are fasting",
+        `Elapsed Time (%${progress.toFixed(1)})`,
+        "Started",
+        "End",
+        "End Fasting",
+      ];
+    }
+
+    return [
+      "Ready to Fasting",
+      "Set Fasting Time",
+      "Start to",
+      "End to",
+      "Start Fasting",
+    ];
+  }, [status, progress]);
 
   const resetFasting = () => {
     setStartTime(new Date());
-    setProgress(100);
+    setProgress(101);
     setFastingDuration(initialFastingDuration);
-    setIsActive(false);
+    setStatus("idle");
     setFastingTime(formatTime(new Date(initialFastingDuration * 1000), false));
   };
 
-  const handleFastingState = () => {
-    if (!isActive) {
-      setIsActive(true);
-    } else {
-      const startTimeInSeconds = convertToSeconds(formatTime(startTime));
-      const currentTimeInSeconds = convertToSeconds(
-        formatTime(new Date(Date.now()))
-      );
+  const recordFasting = () => {
+    const startTimeInSeconds = convertToSeconds(formatTime(startTime));
+    const currentTimeInSeconds = convertToSeconds(
+      formatTime(new Date(Date.now()))
+    );
 
-      let durationInSeconds = currentTimeInSeconds - startTimeInSeconds;
+    let durationInSeconds = currentTimeInSeconds - startTimeInSeconds;
 
-      // If the duration is negative, we assume that the current time is for the next day
-      if (durationInSeconds < 0) {
-        durationInSeconds += 24 * 3600;
-      }
-
-      saveFasting(dispatchFastingAction, {
-        duration: formatDuration(durationInSeconds),
-        startTime: formatTime(startTime),
-        endTime: formatTime(endTime, false),
-        createdAt: new Date(Date.now()).toLocaleString(),
-      });
-      resetFasting();
+    // If the duration is negative, we assume that the current time is for the next day
+    if (durationInSeconds < 0) {
+      durationInSeconds += 24 * 3600;
     }
+
+    saveFasting(dispatchFastingAction, {
+      duration: durationInSeconds,
+      startTime: formatTime(startTime),
+      endTime: formatTime(endTime),
+      createdAt: new Date(Date.now()).toISOString(),
+    });
   };
 
-  const handleStartTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newStartTime = new Date();
-    newStartTime.setHours(parseInt(e.target.value.substr(0, 2)));
-    newStartTime.setMinutes(parseInt(e.target.value.substr(3, 2)));
-    newStartTime.setSeconds(0);
-    setStartTime(newStartTime);
+  const handleFastingState = () => {
+    if (status === "idle") {
+      const newDate = new Date();
+      setStartTime(newDate);
+      setEndTime(calculateEndTime(newDate, fastingDuration));
+      setStatus("started");
+    } else if (status === "started") {
+      recordFasting();
+      resetFasting();
+    } else {
+      resetFasting();
+    }
   };
 
   const handleDurationChange = (time: string) => {
     const newDuration = convertToSeconds(time);
     setFastingDuration(newDuration);
-    console.log(newDuration, time);
     const fastTime = formatTime(new Date(newDuration * 1000), false);
-    console.log(fastTime, new Date(newDuration * 1000));
     setFastingTime(fastTime);
   };
 
-  const onCountDownChange = ({ prettyFormat }) => {
-    console.log(prettyFormat);
+  const onCountDownChange = (prettyFormat: string) => {
     handleDurationChange(prettyFormat);
   };
 
   return (
-    <div className='flex flex-col items-center p-4'>
+    <div className='flex flex-col items-center justify-center px-20 py-6 pt-12 space-y-6 w-full'>
       <div className='relative'>
+        <h3 className='text-2xl font-bold text-center mb-4'>{header}</h3>
         <CircularProgressBar size={300} strokeWidth={30} progress={progress} />
-        <div className='absolute top-0 left-0 flex items-center justify-center w-full h-full'>
+        <div className='absolute top-4 left-0 flex items-center justify-center w-full h-full'>
           <div className='text-center'>
-            <div className='text-lg font-semibold'>
-              {isActive ? (
-                <span>Elapsed Time %{progress.toFixed(1)}</span>
-              ) : (
-                <span>Set Fasting Time</span>
-              )}
+            <div className='font-raleway text-[#575757]'>
+              <span>{elapsed}</span>
             </div>
             <Timer
-              fastingTime={fastingTime}
+              isActive={status !== "idle"}
+              time={fastingTime}
               onCountDownChange={onCountDownChange}
             />
           </div>
         </div>
       </div>
-      <div className='mt-4'>
-        <label
-          htmlFor='start-time'
-          className='block text-sm font-medium text-gray-700'
-        >
-          Start To:
-        </label>
-        <input
-          id='start-time'
-          type='time'
-          step='60'
-          value={formatTime(startTime)}
-          onChange={handleStartTimeChange}
-          className='mt-1'
-          disabled={isActive}
-        />
-      </div>
-      <div className='flex justify-between w-full mt-4'>
-        <label
-          htmlFor='start-time'
-          className='block text-sm font-medium text-gray-700'
-        >
-          End To:
-        </label>
-        <input
-          id='start-time'
-          type='time'
-          step='60'
-          disabled
-          value={formatTime(endTime, false)}
-        />
+      <div className='flex justify-evenly w-full'>
+        <div className='flex flex-col items-center'>
+          <label htmlFor='start-time' className='text-sm text-[#9695A8]'>
+            {start}
+          </label>
+          <input
+            id='start-time'
+            type='time'
+            value={removeSeconds(formatTime(startTime))}
+            disabled
+            className='text-[#6567D9] font-bold'
+          />
+        </div>
+        <div className='flex flex-col items-center'>
+          <label htmlFor='end-time' className='text-sm text-[#9695A8]'>
+            {end}
+          </label>
+          <input
+            id='end-time'
+            type='time'
+            disabled
+            value={removeSeconds(formatTime(endTime))}
+            className='text-[#6567D9] font-bold'
+          />
+        </div>
       </div>
       <button
         type='button'
-        className='px-4 py-2 mt-4 text-white bg-blue-600 rounded'
+        className='mb-8 bg-[#002548] text-white w-full p-4 rounded-[24px] hover:bg-blue-700 transition duration-300'
         onClick={handleFastingState}
       >
-        {isActive ? "End Fasting" : "Start Fasting"}
+        {ctaText}
       </button>
+      {status === "completed" && (
+        <Confetti
+          initialVelocityX={3.6}
+          initialVelocityY={9.8}
+          numberOfPieces={25}
+          gravity={0.04}
+          confettiSource={{
+            w: 10,
+            h: 10,
+            x: 500 / 2,
+            y: 530 / 2,
+          }}
+          width={500}
+          height={530}
+        />
+      )}
     </div>
   );
 };

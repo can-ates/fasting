@@ -11,6 +11,23 @@ export type ContainerProps = {
   children: React.ReactNode;
 };
 
+export type TimerProps = {
+  onCountDownChange: (time) => void;
+  time: string;
+  isActive: boolean;
+};
+
+type TextInputProps = {
+  id: string;
+  name: string;
+  type: string;
+  placeholder: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  label?: string;
+  required?: boolean;
+};
+
 export type CardProps = {
   title?: string;
   subtitle?: string;
@@ -30,7 +47,7 @@ export type FormDataTypes = {
 };
 
 export type FastingHistory = {
-  duration: string;
+  duration: number;
   startTime: string;
   endTime: string;
   createdAt: string;

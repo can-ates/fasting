@@ -1,14 +1,5 @@
+import { TextInputProps } from "@/types";
 import React from "react";
-
-type TextInputProps = {
-  id: string;
-  name: string;
-  type: string;
-  placeholder: string;
-  value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  label?: string;
-};
 
 const TextInput: React.FC<TextInputProps> = ({
   id,
@@ -18,9 +9,10 @@ const TextInput: React.FC<TextInputProps> = ({
   value,
   onChange,
   label,
+  required,
 }) => {
   return (
-    <>
+    <div className='w-full'>
       {label && (
         <label htmlFor={id} className='mb-2 text-gray-700'>
           {label}
@@ -29,14 +21,15 @@ const TextInput: React.FC<TextInputProps> = ({
       <input
         id={id}
         name={name}
+        required={required}
         type={type}
         placeholder={placeholder}
         value={value}
         onChange={onChange}
-        className='border-2 max-w-[345px] w-full h-[60px] border-gray-300 p-3 rounded-md focus:outline-none focus:border-[#002548] transition-colors'
+        className='border-2 w-full h-[60px] border-gray-300 p-3 rounded-md focus:outline-none focus:border-[#002548] transition-colors'
         aria-labelledby={label ? id : undefined}
       />
-    </>
+    </div>
   );
 };
 

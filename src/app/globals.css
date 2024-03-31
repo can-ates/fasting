@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url("https://fonts.googleapis.com/css2?family=Raleway:wght@400;600;700&display=swap");
+
 :root {
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;
@@ -18,11 +20,13 @@
 
 body {
   background: rgb(235, 236, 255);
+  color: #040404;
 }
 
 input[type="time"] {
   position: relative;
   outline-width: 0;
+  background: none;
 }
 
 input[type="time"]::-webkit-calendar-picker-indicator {

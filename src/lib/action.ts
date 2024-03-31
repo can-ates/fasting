@@ -7,6 +7,7 @@ export async function authenticate(formData: FormDataTypes) {
   try {
     const res = await signIn(formData);
     const { user_id } = await res.json();
+
     setCookie(user_id);
 
     const user = {
@@ -16,6 +17,8 @@ export async function authenticate(formData: FormDataTypes) {
     };
 
     createStorage(user);
+
+    return user;
   } catch (error) {
     console.log(error);
   }
