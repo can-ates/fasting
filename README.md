@@ -16,4 +16,4 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-This project utilizes native input field with time type. Since different browsers and devices handle time input, experiences may vary. It works best on Desktop and Chrome.
+This project utilizes native input field with time type. Since some browsers and devices handle time input differently, experiences may vary. It works best on Desktop and Chrome.
